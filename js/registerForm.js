@@ -27,6 +27,18 @@ jQuery(document).ready(function(){
 		}
 	});
 	
+	//Function on focus tooltip´s username field
+    jQuery("#textUsername").focus(function(){
+        jQuery("#textUsername").css("display", "none");
+        jQuery("#username").focus();
+    });
+    //Function on blur username field.
+    jQuery("#username").blur(function(){
+        if(jQuery("#username").val()==''){
+            jQuery("#textUsername").css("display", "block");
+        }
+    });
+    
 	//Function on focus tooltip´s email field
 	jQuery("#textEmail").focus(function(){
 		jQuery("#textEmail").css("display", "none");
@@ -39,6 +51,48 @@ jQuery(document).ready(function(){
 		}
 	});
 	
+	//datePicker function
+	jQuery("#birthday").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            minDate: new Date(1920, 1 -1, 1),
+            maxDate: "-1d",
+            yearRange: "1920:2013",
+            gotoCurrent: true
+        });
+    // Traducción al español
+    $(function($){
+        $.datepicker.regional['es'] = {
+            closeText: 'Cerrar',
+            prevText: '<Ant',
+            nextText: 'Sig>',
+            currentText: 'Hoy',
+            monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+            monthNamesShort: ['Ene','Feb','Mar','Abr', 'May','Jun','Jul','Ago','Sep', 'Oct','Nov','Dic'],
+            dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+            dayNamesShort: ['Dom','Lun','Mar','Mié','Juv','Vie','Sáb'],
+            dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','Sá'],
+            weekHeader: 'Sm',
+            dateFormat: 'dd/mm/yy',
+            firstDay: 1,
+            isRTL: false,
+            showMonthAfterYear: false,
+            yearSuffix: ''
+        };
+        $.datepicker.setDefaults($.datepicker.regional['es']);
+    });
+        
+	//Function on focus tooltip´s birthday field
+    jQuery("#textBirthday").focus(function(){
+        jQuery("#textBirthday").css("display", "none");
+        jQuery("#birthday").focus();
+    });
+    
+    //Function on focus tooltip´s birthday field
+    jQuery("#birthday").blur(function(){
+        $('#signUp_Form').validate().element(this);
+    });
+    
 	//Function on focus tooltip´s password field
 	jQuery("#textPassword").focus(function(){
 		jQuery("#textPassword").css("display", "none");
@@ -67,7 +121,7 @@ jQuery(document).ready(function(){
 	//jQuery("#textNombre").focus();
 	
 	//Validate form
-	$('#signUp_Form').validate({
+	jQuery("#signUp_Form").validate({
         rules :{
             nombre : {
                 required : true
@@ -75,9 +129,41 @@ jQuery(document).ready(function(){
             apellidos : {
                 required : true
             },
+            username : {
+                required : true,
+                minlength : 6,
+                maxlength : 50,
+                remote:{
+                    url: "checkUser.php",
+                    type: "post",
+                    data:{
+                        usrnm: function(){
+                                    return jQuery('#username').val();
+                            },
+                        search: 'username'
+                    }
+                }
+            },
             email : {
             	required : true,
-            	email    : true
+            	email    : true,
+            	remote:{
+                    url: "checkUser.php",
+                    type: "post",
+                    data:{
+                        usrnm: function(){
+                                    return jQuery('#email').val();
+                            },
+                        search: 'e-mail'
+                    }
+                }
+            },
+            birthday : {
+                required: true,
+                date: true
+            },
+            gender: {
+                required: true
             },
             password : {
                 required : true,
@@ -95,7 +181,23 @@ jQuery(document).ready(function(){
 		messages : {
 			nombre: "Proporciona un nombre válido",
 			apellidos: "Escribe tus apellidos",
-			email: "Proporciona una dirección de correo electrónico válida",
+			username :{
+			    remote : "El nombre de usuario ya existe, intenta con otro",
+			    required: "El nombre de usuario es requerido",
+			    minlength: "El nombre de usuario debe tener entre 6 y 50 caracteres",
+                maxlength: "El nombre de usuario debe tener entre 6 y 50 caracteres"
+			},
+			email: {
+			    required : "El email es obligatorio",
+			    remote : "El email ya está registrado, intenta con otro",
+			    email: "Proporciona una dirección de correo electrónico válida"
+			},
+			birthday : {
+			    required : "La fecha de tu cumpleaños es requerida"
+			},
+			gender: {
+			    required: "Dinos si eres hombre o mujer!"
+			},
 			password : {
 				required: "Escribe una contraseña",
 				minlength: "La contraseña debe tener entre 6 y 10 caracteres",
@@ -107,23 +209,35 @@ jQuery(document).ready(function(){
 			}
 		},
 		errorPlacement: function (error, element) {
-			if (element.attr("name") == "nombre" ) {
+			if (element.attr("name") === "nombre" ) {
 				jQuery("#errorNombre").append(error);
 			}
 			
-			if (element.attr("name") == "apellidos" ) {
+			if (element.attr("name") === "apellidos" ) {
 				jQuery("#errorApellidos").append(error);
 			}
 			
-			if (element.attr("name") == "email" ) {
+			if (element.attr("name") === "username" ) {
+                jQuery("#errorUsername").append(error);
+            }
+            
+			if (element.attr("name") === "email" ) {
 				jQuery("#errorEmail").append(error);
 			}
 			
-			if (element.attr("name") == "password" ) {
+			if (element.attr("name") === "birthday" ) {
+                jQuery("#errorBirthday").append(error);
+            }
+            
+            if (element.attr("name") === "gender" ) {
+                jQuery("#errorGender").append(error);
+            }
+            
+			if (element.attr("name") === "password" ) {
 				jQuery("#errorPassword").append(error);
 			}
 			
-			if (element.attr("name") == "passwordC" ) {
+			if (element.attr("name") === "passwordC" ) {
 				jQuery("#errorPasswordC").append(error);
 			}
 		}      

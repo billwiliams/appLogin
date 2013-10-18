@@ -7,10 +7,10 @@
  class AccesoDatos{
  private $nConexion=0;
 
-	private $ip="localhost";
-	private $usuario="LoginAppAdm";
-	private $password="loginpwd2013";
-	private $db="app_login";
+	private $ip="10.33.143.3";
+	private $usuario="ccsina_logAdm";
+	private $password="apploginpwd2013_";
+	private $db="ccsina_login";
 	
 	/*Realiza la conexion a la base de datos*/
     public function conectar(){

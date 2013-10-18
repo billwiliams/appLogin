@@ -2,7 +2,7 @@
 	session_start();
     if(!empty($_SESSION["user_status"])){
     	if($_SESSION["user_status"]==true){
-    		header("Location:home.php");
+    		header("Location:home");
     	}
 	}    
 ?>
@@ -26,7 +26,7 @@
 			<h1>Formulario de registro:</h1>
 			<div class="hint">Todos los campos son obligatorios</div>
 			
-			<form id="signUp_Form" action="signUp.php" >	
+			<form id="signUp_Form" action="signUp" >	
 				<div class="signUpForm">
 					<div class="placeholder">
 						<input type="text" id="textNombre" class="textInputSmall" value="Nombre" title="Nombre">

@@ -1,8 +1,8 @@
 <?php
 	session_start();
     if(!empty($_SESSION["user_status"])){
-    	if($_SESSION["user_status"]==true){
-    		header("Location:home.php");
+    	if($_SESSION["user_status"]=="active"){
+    		header("Location:home");
     	}
 	} 
 ?>
@@ -22,7 +22,7 @@
 	
 	<body>
 		<div class="content">
-			<form action="login.php">
+			<form action="signIn">
 				
 			<h1>Iniciar sesi&oacute;n:</h1>
 			
@@ -50,8 +50,8 @@
 					<input type="submit" value="Entrar" class="sumbitLogin"/>
 				<div class="links dark">
 					<p>
-						<a href="register.php">¡Regístrate ahora!</a><br />
-						<a href="register.php">Olvidé la contraseña</a>
+						<a href="register">¡Regístrate ahora!</a><br />
+						<a href="register">Olvidé la contraseña</a>
 					</p>
 				</div>
 				
