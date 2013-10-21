@@ -58,7 +58,8 @@ jQuery(document).ready(function(){
             minDate: new Date(1920, 1 -1, 1),
             maxDate: "-1d",
             yearRange: "1920:2013",
-            gotoCurrent: true
+            gotoCurrent: true,
+            dateFormat: "yy/mm/dd"
         });
     // Traducción al español
     $(function($){

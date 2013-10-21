@@ -1,8 +1,8 @@
 <?php
 session_start();
 include_once ("User.php");
+include_once ("UserProfile.php");
 include_once ("Util.php");
-$oUser = new User();
 $error = "";
 
 /*
@@ -37,66 +37,123 @@ $error = "";
  break;
  }
  */
-function insertUser($requestFrom, $id, $username, $password, $last_access, $salt, $fb_id, $tw_id, $type, $status, $email) {
-    $result = false;
+function insertUserFromWebsite($username, $password, $type, $status, $email, $first_name, $last_name, $birthday, $gender) {
     $oUs = new User();
+    $oUserP = new UserProfile();
 
-    if ($requestFrom == "website") {
-        $oUs -> setId(generateId());
-        $oUs -> setUsername($_POST['username']);
-        $oUs -> setSalt(generateSalt());
-        $oUs -> setPassword(generateHashPassword($oUs -> getSalt(), $password));
-        $oUs -> setType("1");
-        $oUs -> setStatus("en espera");
-        $oUs -> setEmail($email);
+    $oUs -> setId(generateId());
+    $oUs -> setUsername($username);
+    $oUs -> setSalt(generateSalt());
+    $oUs -> setPassword(generateHashPassword($oUs -> getSalt(), $password));
+    $oUs -> setType($type);
+    $oUs -> setStatus($status);
+    $oUs -> setEmail($email);
 
-        $r = $oUs -> insertFromWebsite();
-        if ($r == 1) {
-            header("Location:user/home");
+    $r = $oUs -> insertFromWebsite();
+    if ($r == 1) {
+        $oUserP -> setId($oUs -> getId());
+        $oUserP -> setFirstName($first_name);
+        $oUserP -> setLastName($last_name);
+        $oUserP -> setBirthday($birthday);
+        $oUserP -> setGender($gender);
+
+        $r2 = $oUserP -> insert();
+        if ($r2 == 1) {
+            header("Location: ok");
         } else {
-            $error = "Error! No se insertó el usuario.";
+            $error = "Error! No se insertó el perfil de usuario.";
             header("Location: error.php?e=" . $error);
         }
+    } else {
+        $error = "Error! No se insertó el usuario.";
+        header("Location: error.php?e=" . $error);
     }
+}
 
-    if (strcmp($requestFrom, "facebook") == 0) {
+function insertUserFromFacebook($id, $username, $type, $status, $email, $first_name, $last_name, $about_me, $url_img, $birthday, $gender) {
+    $oUs = new User();
+    $oUserP = new UserProfile();
 
-        if ($oUs -> searchByFacebookId($fb_id)) {
-            return $oUs;
-        } else {
-            $oUs -> setId(generateId());
-            $oUs -> setUsername($username);
-            $oUs -> setSalt(generateSalt());
-            $oUs -> setFacebookId($fb_id);
-            $oUs -> setType($type);
-            $oUs -> setStatus($status);
-            $oUs -> setEmail($email);
-
-            $r = $oUs -> insertFromFacebook();
-            if ($r == 1) {
-                //header("Location:user/profile");
-                return $oUs;
-            } else {
-                $error = "Error! No se insertó el usuario.";
-                header("Location: error?e=" . $error);
-            }
-        }
-    }
-
-    if ($_POST['requestFrom'] == "twitter") {
+    if ($oUs -> searchByFacebookId($id)) {
+        $error = "Ya está registrado el perfil en nuestra base de datos";
+        header("Location: error?e=" . $error);
+    } else if ($oUs -> checkEmail($email)) {
+        $error = "Ya está registrado el email en nuestra base de datos";
+        header("Location: error?e=" . $error);
+    } else if ($oUs -> checkUsername($username)) {
+        $error = "Ya está registrado el nombre de usuario en nuestra base de datos";
+        header("Location: error?e=" . $error);
+    } else {
         $oUs -> setId(generateId());
-        $oUs -> setUsername($_POST['username']);
-        $oUs -> setFacebookId($_POST["tw_id"]);
+        $oUs -> setUsername($username);
         $oUs -> setSalt(generateSalt());
-        $oUs -> setType("1");
-        $oUs -> setStatus("activo");
+        $oUs -> setFacebookId($id);
+        $oUs -> setType($type);
+        $oUs -> setStatus($status);
+        $oUs -> setEmail($email);
 
         $r = $oUs -> insertFromFacebook();
         if ($r == 1) {
-            header("Location:user/confirm");
+            $oUserP -> setId($oUs -> getId());
+            $oUserP -> setFirstName($first_name);
+            $oUserP -> setLastName($last_name);
+            $oUserP -> setAboutMe($about_me);
+            $oUserP -> setUrlImg($url_img);
+            $oUserP -> setBirthday($birthday);
+            $oUserP -> setGender($gender);
+
+            $r2 = $oUserP -> insert();
+            if ($r2 == 1) {
+                header("Location:ok");
+            } else {
+                $error = "No se registró el perfil del usuario";
+                header("Location: error?e=" . $error);
+            }
         } else {
-            $error = "Error! No se insertó el usuario.";
-            header("Location: error.php?e=" . $error);
+            $error = "No se insertó el usuario.";
+            header("Location: error?e=" . $error);
+        }
+    }
+}
+
+function insertUserFromTwitter($id, $username, $type, $status, $first_name, $last_name, $about_me, $url_img, $email) {
+    $oUs = new User();
+    $oUserP = new UserProfile();
+
+    if ($oUs -> searchByTwitterId($id)) {
+        $error = "Ya está registrado el perfil en nuestra base de datos";
+        header("Location: error?e=" . $error);
+    }
+    else if ($oUs -> checkUsername($username)) {
+        $error = "Ya está registrado el nombre de usuario en nuestra base de datos";
+        header("Location: error?e=" . $error);
+    } else {
+        $oUs -> setId(generateId());
+        $oUs -> setUsername($username);
+        $oUs -> setSalt(generateSalt());
+        $oUs -> setTwitterId($id);
+        $oUs -> setType($type);
+        $oUs -> setStatus($status);
+        $oUs -> setEmail($email);
+
+        $r = $oUs -> insertFromTwitter();
+        if ($r == 1) {
+            $oUserP -> setId($oUs -> getId());
+            $oUserP -> setFirstName($first_name);
+            $oUserP -> setLastName($last_name);
+            $oUserP -> setAboutMe($about_me);
+            $oUserP -> setUrlImg($url_img);
+
+            $r2 = $oUserP -> insert();
+            if ($r2 == 1) {
+                header("Location:ok");
+            } else {
+                $error = "No se registró el perfil del usuario";
+                header("Location: error?e=" . $error);
+            }
+        } else {
+            $error = "No se insertó el usuario.";
+            header("Location: error?e=" . $error);
         }
     }
 }

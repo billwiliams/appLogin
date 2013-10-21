@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ALL);
 include_once ("config/AccesoDatos.php");
+include_once ("Util.php");
 class User {
     private $id = '';
     private $username = '';
@@ -111,32 +112,43 @@ class User {
      */
     function signIn() {
         $oAccesoDatos = new AccesoDatos();
-        $sQuery = "";
+        $sQuery1 = $sQuery2 = "";
         $aFila = null;
+        $aFila2 = null;
         $bRet = false;
-        if ($this -> username == "" OR $this -> password == "")
+        if ($this -> email == "" OR $this -> password == "")
             throw new Exception("User->signIn(): error de codificaci&oacute;n, faltan datos");
         else {
             if ($oAccesoDatos -> conectar()) {
-                $sQuery = "SELECT id, username, password, last_access, salt, fb_id, tw_id, type, status, email
-					FROM app_user 
-					WHERE email = '" . $this -> email . "' 
-					AND password = '" . $this -> password . "'";
-                $aFila = $oAccesoDatos -> ejecutarConsulta($sQuery);
-                $oAccesoDatos -> desconectar();
-                if ($aFila) {
-                    $this -> id = $aFila[0][0];
-                    $this -> username = $aFila[0][1];
-                    $this -> password = $aFila[0][2];
-                    $this -> lastAccess = $aFila[0][3];
-                    $this -> salt = $aFila[0][4];
-                    $this -> fb_id = $aFila[0][5];
-                    $this -> tw_id = $aFila[0][6];
-                    $this -> type = $aFila[0][7];
-                    $this -> status = $aFila[0][8];
-                    $this -> email = $aFila[0][9];
-                    $bRet = true;
-                }
+                $sQuery1 = "SELECT salt
+                    FROM app_user 
+                    WHERE email = '" . $this -> email . "'";
+               $aFila2 = $oAccesoDatos -> ejecutarConsulta($sQuery1);
+               if ($aFila2) {
+                   $salt = $aFila2[0][0];
+                   $password =  generateHashPassword($salt, $this -> password);
+                   $this -> password = $password;
+                   
+                   $sQuery2 = "SELECT id, username, password, last_access, salt, fb_id, tw_id, type, status, email
+                        FROM app_user 
+                        WHERE email = '" . $this -> email . "' 
+                        AND password = '" . $this -> password . "'";
+                    $aFila = $oAccesoDatos -> ejecutarConsulta($sQuery2);
+                    $oAccesoDatos -> desconectar();
+                    if ($aFila) {
+                        $this -> id = $aFila[0][0];
+                        $this -> username = $aFila[0][1];
+                        $this -> password = $aFila[0][2];
+                        $this -> lastAccess = $aFila[0][3];
+                        $this -> salt = $aFila[0][4];
+                        $this -> fb_id = $aFila[0][5];
+                        $this -> tw_id = $aFila[0][6];
+                        $this -> type = $aFila[0][7];
+                        $this -> status = $aFila[0][8];
+                        $this -> email = $aFila[0][9];
+                        $bRet = true;
+                    }
+               }     
             }
         }
         return $bRet;
@@ -151,12 +163,12 @@ class User {
      * @return boolean $bRet true; si existe el usuario
      *
      */
-    function searchById() {
+    function searchById($id) {
         $oAccesoDatos = new AccesoDatos();
         $sQuery = "";
         $aFila = null;
         $bRet = false;
-        if ($this -> id == "")
+        if ($id == "")
             throw new Exception("User->searchById(): error de codificaci&oacute;n, faltan datos");
         else {
             if ($oAccesoDatos -> conectar()) {
@@ -233,18 +245,18 @@ class User {
      * @return boolean $bRet true; si existe el usuario
      *
      */
-    function searchByTwitterId() {
+    function searchByTwitterId($tw_id) {
         $oAccesoDatos = new AccesoDatos();
         $sQuery = "";
         $aFila = null;
         $bRet = false;
-        if ($this -> tw_id == "")
+        if ($tw_id == "")
             throw new Exception("User->searchByTwitterId(): error de codificaci&oacute;n, faltan datos");
         else {
             if ($oAccesoDatos -> conectar()) {
                 $sQuery = "SELECT id, username, password, last_access, salt, fb_id, tw_id, type, status, email
 					FROM app_user 
-					WHERE tw_id = '" . $this -> tw_id . "'";
+					WHERE tw_id = '" . $tw_id . "'";
                 $aFila = $oAccesoDatos -> ejecutarConsulta($sQuery);
                 $oAccesoDatos -> desconectar();
                 if ($aFila) {
@@ -312,7 +324,7 @@ class User {
         $oAccesoDatos = new AccesoDatos();
         $sQuery = "";
         $nAfectados = -1;
-        if ($this -> id == "" OR $this -> username == "" OR $this -> tw_id == "" OR $this -> salt == "")
+        if ($this -> id == "" OR $this -> username == "" OR $this -> tw_id == "" OR $this -> salt == "" OR $this -> email == "")
             throw new Exception("User->insertFromTwitter(): error de codificaci&oacute;n, faltan datos");
         else {
             if ($oAccesoDatos -> conectar()) {
@@ -323,7 +335,8 @@ class User {
 					        '" . $this -> tw_id . "',
 					        '" . $this -> type . "',
 					        '" . $this -> status . "',
-                            '" . $this -> email . "')";
+					        '" . $this -> email . "'			        
+					        )";
 
                 $nAfectados = $oAccesoDatos -> ejecutarComando($sQuery);
                 $oAccesoDatos -> desconectar();
@@ -438,7 +451,7 @@ class User {
         $arrUsuarios = null;
         if ($oAccesoDatos -> conectar()) {
             $sQuery = "SELECT id, username, password, last_access, salt, fb_id, tw_id, type, status, email
-				FROM user_app 
+				FROM app_user 
 				ORDER BY last_access";
             $aFila = $oAccesoDatos -> ejecutarConsulta($sQuery);
             $oAccesoDatos -> desconectar();
